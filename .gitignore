@@ -4,14 +4,8 @@ node_modules
 *.vsix
 .DS_Store
 
-# Media files (users provide their own)
-sounds/*.mp3
-images/*.gif
-videos/*.mp4
-
-# Keep README files
-!sounds/README.md
-!images/README.md
+# Videos folder (not used, only sounds and images are included)
+videos/**
 !videos/README.md
 
 # Claude settings
