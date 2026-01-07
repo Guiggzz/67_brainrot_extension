@@ -157,14 +157,38 @@ function getWebviewContent(gifUri: string, audioUri: string): string {
 		</head>
 		<body>
 			<img src="${gifUri}" alt="SIX SEVEN" />
-			<audio id="audio" autoplay>
+			<audio id="audio" preload="auto">
 				<source src="${audioUri}" type="audio/mpeg">
 			</audio>
 			<script>
-				// Force play the audio
-				const audio = document.getElementById('audio');
-				audio.volume = 1.0;
-				audio.play().catch(err => console.error('Error playing audio:', err));
+				(function() {
+					const audio = document.getElementById('audio');
+
+					// Set volume to maximum
+					audio.volume = 1.0;
+
+					// Try to play immediately
+					const playPromise = audio.play();
+
+					if (playPromise !== undefined) {
+						playPromise.then(() => {
+							console.log('Audio playing successfully');
+						}).catch(err => {
+							console.error('Error playing audio:', err);
+							// If autoplay fails, try again after a short delay
+							setTimeout(() => {
+								audio.play().catch(e => console.error('Retry failed:', e));
+							}, 100);
+						});
+					}
+
+					// Also try to play when the audio is fully loaded
+					audio.addEventListener('canplaythrough', () => {
+						if (audio.paused) {
+							audio.play().catch(err => console.error('Error on canplaythrough:', err));
+						}
+					});
+				})();
 			</script>
 		</body>
 		</html>
