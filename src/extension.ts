@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
-import * as sound from 'sound-play';
 
 /**
  * Extension activation
@@ -69,44 +68,32 @@ export function activate(context: vscode.ExtensionContext) {
  * @param gifPath Path to the 67.gif file
  */
 function triggerSixSeven(context: vscode.ExtensionContext, audioPath: string, gifPath: string): void {
-	// Play sound and show GIF at the same time
-	playSixSevenSound(audioPath);
-	showGif(context, gifPath);
+	// Show GIF with sound embedded in the webview
+	showGifWithSound(context, audioPath, gifPath);
 }
 
 /**
- * Plays the SIX SEVEN sound effect
- * @param audioPath Path to the 67.mp3 audio file
+ * Shows the 67 GIF with sound in a webview panel
+ * @param context Extension context
+ * @param audioPath Path to the 67.mp3 file
+ * @param gifPath Path to the 67.gif file
  */
-async function playSixSevenSound(audioPath: string): Promise<void> {
-	// Check if the file exists before trying to play
+function showGifWithSound(context: vscode.ExtensionContext, audioPath: string, gifPath: string): void {
+	// Check if the files exist before trying to show
+	if (!fs.existsSync(gifPath)) {
+		console.error('❌ Cannot show GIF: 67.gif not found at', gifPath);
+		return;
+	}
+
 	if (!fs.existsSync(audioPath)) {
 		console.error('❌ Cannot play sound: 67.mp3 not found at', audioPath);
 		return;
 	}
 
 	try {
-		// Play the sound (sound-play plays in the background without opening a window)
-		await sound.play(audioPath);
-		console.log('🔊 SIX SEVEN! Sound played successfully');
-	} catch (error) {
-		console.error('❌ Error playing 67 sound:', error);
-	}
-}
+		// Get the directory containing both files
+		const resourcesDir = vscode.Uri.file(context.extensionPath);
 
-/**
- * Shows the 67 GIF in a webview panel
- * @param context Extension context
- * @param gifPath Path to the 67.gif file
- */
-function showGif(context: vscode.ExtensionContext, gifPath: string): void {
-	// Check if the file exists before trying to show
-	if (!fs.existsSync(gifPath)) {
-		console.error('❌ Cannot show GIF: 67.gif not found at', gifPath);
-		return;
-	}
-
-	try {
 		// Create a webview panel
 		const panel = vscode.window.createWebviewPanel(
 			'sixSevenGif',
@@ -114,33 +101,35 @@ function showGif(context: vscode.ExtensionContext, gifPath: string): void {
 			vscode.ViewColumn.Beside,
 			{
 				enableScripts: true,
-				localResourceRoots: [vscode.Uri.file(path.dirname(gifPath))]
+				localResourceRoots: [resourcesDir]
 			}
 		);
 
-		// Convert file path to webview URI
+		// Convert file paths to webview URIs
 		const gifUri = panel.webview.asWebviewUri(vscode.Uri.file(gifPath));
+		const audioUri = panel.webview.asWebviewUri(vscode.Uri.file(audioPath));
 
-		// Set the webview content
-		panel.webview.html = getWebviewContent(gifUri.toString());
+		// Set the webview content with both GIF and audio
+		panel.webview.html = getWebviewContent(gifUri.toString(), audioUri.toString());
 
 		// Auto-close the panel after 3 seconds
 		setTimeout(() => {
 			panel.dispose();
 		}, 3000);
 
-		console.log('🖼️ SIX SEVEN GIF displayed!');
+		console.log('🖼️ SIX SEVEN GIF displayed with sound!');
 	} catch (error) {
-		console.error('❌ Error showing GIF:', error);
+		console.error('❌ Error showing GIF with sound:', error);
 	}
 }
 
 /**
  * Generates the HTML content for the webview
  * @param gifUri URI to the GIF file
+ * @param audioUri URI to the audio file
  * @returns HTML string
  */
-function getWebviewContent(gifUri: string): string {
+function getWebviewContent(gifUri: string, audioUri: string): string {
 	return `
 		<!DOCTYPE html>
 		<html lang="en">
@@ -168,6 +157,15 @@ function getWebviewContent(gifUri: string): string {
 		</head>
 		<body>
 			<img src="${gifUri}" alt="SIX SEVEN" />
+			<audio id="audio" autoplay>
+				<source src="${audioUri}" type="audio/mpeg">
+			</audio>
+			<script>
+				// Force play the audio
+				const audio = document.getElementById('audio');
+				audio.volume = 1.0;
+				audio.play().catch(err => console.error('Error playing audio:', err));
+			</script>
 		</body>
 		</html>
 	`;

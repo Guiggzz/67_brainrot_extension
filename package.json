@@ -2,7 +2,7 @@
   "name": "vscode-67-brainrot",
   "displayName": "67 Brainrot",
   "description": "Plays SIX SEVEN sound and shows GIF on every save 🔥",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "publisher": "Guiggzzz",
   "license": "MIT",
   "repository": {
@@ -34,9 +34,6 @@
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts"
-  },
-  "dependencies": {
-    "sound-play": "^1.1.0"
   },
   "devDependencies": {
     "@types/node": "^20.x",
