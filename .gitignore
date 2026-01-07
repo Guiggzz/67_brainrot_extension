@@ -1,0 +1,18 @@
+out
+node_modules
+.vscode-test/
+*.vsix
+.DS_Store
+
+# Media files (users provide their own)
+sounds/*.mp3
+images/*.gif
+videos/*.mp4
+
+# Keep README files
+!sounds/README.md
+!images/README.md
+!videos/README.md
+
+# Claude settings
+.claude/
